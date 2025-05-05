@@ -1,51 +1,70 @@
 #include <iostream>
+#include <stack>
 #include <string>
-#include <vector>
 using namespace std;
 
-int checkBrackets(string s) {
-    vector<pair <char, int>> posnomas;
-    for (int i = 0; i < s.size(); i++) {
-        if (i + 1 < s.size() && s[i] == '(' && s[i+1] == '*') {
-            posnomas.push_back({ '*', i + 1 });
-            i++;
-        }
-        else if (i + 1 < s.size() && s[i] == '*' && s[i+1] == ')') {
-            if (posnomas.empty() || posnomas.back().first != '*') {
-                return i + 1;
-            }
-            posnomas.pop_back();
-            i++;
-        }
-        else if (s[i] == '(' || s[i] == '[' || s[i] == '{' || s[i] == '<') {
-            posnomas.push_back({s[i], i+1});
-        }
-        else if (s[i] == ')' || s[i] == ']' || s[i] == '}' || s[i] == '>') {
-            if (posnomas.empty()) return i + 1;
-            if ((s[i] == ')' && posnomas.back().first == '(') || (s[i] == ']' && posnomas.back().first == '[') || (s[i] == '}' && posnomas.back().first == '{') || (s[i] == '>' && posnomas.back().first == '<')) {
-                posnomas.pop_back();
-            }
-            else {
-                return posnomas.back().second;
-            }
-        }
-    }
-    if (!posnomas.empty()) {
-        return posnomas.back().second;
-    }
-    return -1;
+string match(string open)
+{
+    if (open == "(") return ")";
+    if (open == "[") return "]";
+    if (open == "{") return "}";
+    if (open == "<") return ">";
+    if (open == "(*") return "*)";
+    return "";
 }
 
-int main() {
+int main()
+{
     string line;
-    while (getline(cin, line)) {
-        int errorPos = checkBrackets(line);
-        if (errorPos == -1) {
-            cout << "YES" << endl;
+    while (getline(cin, line))
+    {
+        stack<string> stack;
+        bool error = false;
+        int pos = 1;
+
+        for (int i = 0; i < line.size();)
+        {
+            string token;
+
+            if (i + 1 < line.size() && line[i] == '(' && line[i + 1] == '*')
+            {
+                token = "(*";
+                i += 2;
+            }
+            else if (i + 1 < line.size() && line[i] == '*' && line[i + 1] == ')')
+            {
+                token = "*)";
+                i += 2;
+            }
+            else
+            {
+                token = line.substr(i, 1);
+                i++;
+            }
+
+            if (token == "(" || token == "[" || token == "{" || token == "<" || token == "(*")
+            {
+                stack.push(token);
+            }
+            else if (token == ")" || token == "]" || token == "}" || token == ">" || token == "*)")
+            {
+                if (stack.empty() || match(stack.top()) != token)
+                {
+                    cout << "NO " << pos << endl;
+                    error = true;
+                    break;
+                }
+                else
+                {
+                    stack.pop();
+                }
+            }
+            pos++;
         }
-        else {
-            cout << "NO " << errorPos << endl;
+        if (!error)
+        {
+            if (stack.empty()) cout << "YES" << endl;
+            else cout << "NO " << pos << endl;
         }
     }
-    return 0;
 }
